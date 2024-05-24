@@ -1,2 +1,5 @@
 openai
+pydantic
+instructor
 streamlit
+llama-cpp-python[server]
