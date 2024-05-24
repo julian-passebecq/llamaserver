@@ -1,11 +1,13 @@
 from openai import OpenAI
 import streamlit as st
 
+# Set up the OpenAI client
 client = OpenAI(
     base_url="http://localhost:8000/v1",
     api_key="tom",
 )
 
+# Initialize session state for messages
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
         {
@@ -15,29 +17,22 @@ if "messages" not in st.session_state:
         }
     ]
 
+# Streamlit UI
 st.title("🚀 LLaMa CPP Local OpenAI server")
 for message in st.session_state.messages:
-    st.chat_message(message["role"]).markdown(message["content"])
+    st.markdown(f"**{message['role'].capitalize()}:** {message['content']}")
 
-prompt = st.chat_input("Pass your input here")
+# Input prompt from user
+prompt = st.text_input("Pass your input here")
+
 if prompt:
-    st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
+    st.markdown(f"**User:** {prompt}")
 
-    response = client.chat.completions.create(
-        model="llama.cpp/models/mistral-7b-instruct-v0.1.Q4_0.gguf",
+    response = client.chat_completions.create(
         messages=st.session_state.messages,
-        stream=True,
     )
 
-    complete_response = ""
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        for chunk in response:
-            if chunk.choices[0].delta.content is not None:
-                complete_response += chunk.choices[0].delta.content
-                message_placeholder.markdown(complete_response + "▌")
-                message_placeholder.markdown(complete_response)
-    st.session_state.messages.append(
-        {"role": "assistant", "content": complete_response}
-    )
+    assistant_message = response['choices'][0]['message']['content']
+    st.session_state.messages.append({"role": "assistant", "content": assistant_message})
+    st.markdown(f"**Assistant:** {assistant_message}")
