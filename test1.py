@@ -1,9 +1,15 @@
-import openai
+import requests
 import streamlit as st
 
-# Set up the OpenAI client
-openai.api_base = "http://localhost:8000/v1"
-openai.api_key = "tom"
+# Configuration
+base_url = "http://localhost:8000/v1"
+api_key = "tom"
+
+# Headers for authentication
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
 
 # Initialize session state for messages
 if "messages" not in st.session_state:
@@ -27,11 +33,16 @@ if prompt:
     st.session_state["messages"].append({"role": "user", "content": prompt})
     st.markdown(f"**User:** {prompt}")
 
-    response = openai.ChatCompletion.create(
-        model="llama.cpp/models/mistral-7b-instruct-v0.1.Q4_0.gguf",
-        messages=st.session_state["messages"],
-    )
+    payload = {
+        "messages": st.session_state["messages"]
+    }
 
-    assistant_message = response['choices'][0]['message']['content']
-    st.session_state["messages"].append({"role": "assistant", "content": assistant_message})
-    st.markdown(f"**Assistant:** {assistant_message}")
+    response = requests.post(f"{base_url}/chat/completions", headers=headers, json=payload)
+
+    if response.status_code == 200:
+        completion = response.json()
+        assistant_message = completion['choices'][0]['message']['content']
+        st.session_state["messages"].append({"role": "assistant", "content": assistant_message})
+        st.markdown(f"**Assistant:** {assistant_message}")
+    else:
+        st.error(f"Error: {response.status_code} - {response.text}")
