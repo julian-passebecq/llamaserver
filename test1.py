@@ -2,7 +2,7 @@ import requests
 import streamlit as st
 
 # Configuration
-base_url = "http://185.127.204.58:8000/v1"
+base_url = "http://localhost:8000/v1"
 api_key = "tom"
 
 # Headers for authentication
